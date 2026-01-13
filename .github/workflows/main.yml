@@ -1,4 +1,4 @@
-name: CI/CD with Commitizen, AWS & Slack
+name: CI/CD with Commitlint, AWS & Slack
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
         if: failure()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"❌ *Commit validation failed!*\\nUse Conventional Commits.\\nExample: `feat: add login`\\nAuthor: ${{ github.actor }}\"}" \
+          --data "{\"text\":\"❌ *Commit validation failed!*\\nUse Conventional Commits.\\nExample: feat: add login\\nAuthor: ${{ github.actor }}\"}" \
           ${{ secrets.SLACK_WEBHOOK_URL }}
 
   deploy:
@@ -63,7 +63,7 @@ jobs:
           source: "backend/*"
           target: "/var/www/Video_Kyc_App/backend"
 
-      - name: Restart Backend (PM2)
+      - name: Restart Backend with PM2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AWS_EC2_HOST }}
