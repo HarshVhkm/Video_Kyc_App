@@ -133,7 +133,7 @@ const LoginOtpPage = () => {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/auth/verify-otp',
+        '/api/auth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -177,7 +177,7 @@ const LoginOtpPage = () => {
       setResending(true);
 
       const response = await fetch(
-        'http://localhost:5000/api/auth/resend-otp',
+        '/api/auth/resend-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
