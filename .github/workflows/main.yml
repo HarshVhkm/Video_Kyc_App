@@ -8,7 +8,7 @@ on:
 jobs:
   commitlint:
     name: Validate Commit Message
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -48,31 +48,26 @@ jobs:
         with:
           node-version: 'lts/*'
 
-      # ---------------- BACKEND DEPLOY ----------------
+      # ---------------- BACKEND ----------------
       - name: Deploy Backend
         run: |
-          cd /var/www/Video_Kyc_App
-          git pull origin main
-
           cd backend
           npm install --production
-
           pm2 restart Video_Kyc_App-backend || \
           pm2 start src/server.js --name Video_Kyc_App-backend
-
           pm2 save
 
-      # ---------------- FRONTEND BUILD ----------------
+      # ---------------- FRONTEND ----------------
       - name: Build Frontend
         run: |
-          cd /var/www/Video_Kyc_App/frontend
+          cd frontend
           npm install
           NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
           sudo nginx -t
           sudo systemctl reload nginx
 
-      # ---------------- SLACK SUCCESS ----------------
+      # ---------------- SLACK ----------------
       - name: Slack Notification – Deploy Success
         run: |
           curl -X POST -H 'Content-type: application/json' \
