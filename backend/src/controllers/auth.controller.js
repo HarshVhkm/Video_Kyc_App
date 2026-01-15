@@ -159,14 +159,15 @@ exports.resetPassword = async (req, res) => {
       return res.status(401).json({ message: "Reset token missing" });
     }
 
-    // ✅ CHANGE THIS LINE
-    const decoded = jwt.verify(
-      token,
-      process.env.RESET_PASSWORD_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.RESET_PASSWORD_SECRET);
 
+    // Hash new password
     const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
     await userRepo.updatePassword(decoded.userId, hashedPassword);
+
+    // ✅ Send confirmation email
+    const user = await userRepo.findById(decoded.userId);
+    await mailer.sendPasswordResetConfirmation(user.email);
 
     return res.json({ message: "Password reset successful" });
   } catch (err) {
@@ -174,3 +175,4 @@ exports.resetPassword = async (req, res) => {
     return res.status(401).json({ message: "Invalid reset token" });
   }
 };
+
