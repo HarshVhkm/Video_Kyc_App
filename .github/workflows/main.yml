@@ -1,4 +1,4 @@
-name: CI/CD – Self Hosted Runner (Video KYC)
+name: CI/CD – Video KYC (Stable Production)
 
 on:
   push:
@@ -6,70 +6,116 @@ on:
       - main
 
 jobs:
+# --------------------------------------------------
+# JOB 1: COMMIT MESSAGE VALIDATION (CLOUD)
+# --------------------------------------------------
   commitlint:
-    name: Validate Commit Message
+    name: Commitlint Check
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js (LTS)
+      - name: Setup Node (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
 
-      - name: Install Commitlint
-        run: npm install --save-dev @commitlint/{config-conventional,cli}
+      - name: Install commitlint
+        run: npm install --save-dev @commitlint/{cli,config-conventional}
 
-      - name: Run Commitlint
+      - name: Run commitlint
         run: npx commitlint --from=HEAD~1 --to=HEAD
 
-      - name: Slack Notification – Commit Failed
+      - name: Slack – Commit Failed
         if: failure()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"❌ *Commit validation failed!*\\nUse Conventional Commits.\\nExample: feat: add login\\nAuthor: ${{ github.actor }}\"}" \
+          --data "{\"text\":\"❌ Commitlint failed\nAuthor: ${{ github.actor }}\"}" \
           ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  deploy:
-    name: Deploy Video KYC App (Backend + Frontend)
+# --------------------------------------------------
+# JOB 2: BUILD FRONTEND (CLOUD – NO EC2 RAM USAGE)
+# --------------------------------------------------
+  build-frontend:
+    name: Build Frontend (GitHub Runner)
     needs: commitlint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js (LTS)
+      - name: Setup Node (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
 
-      # ---------------- BACKEND ----------------
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci --no-audit --no-fund
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+# --------------------------------------------------
+# JOB 3: DEPLOY ON EC2 (SELF-HOSTED RUNNER)
+# --------------------------------------------------
+  deploy:
+    name: Deploy Backend + Frontend (EC2)
+    needs: build-frontend
+    runs-on: self-hosted
+
+    steps:
+      # ---- BACKEND DEPLOY ----
       - name: Deploy Backend
         run: |
-          cd backend
+          cd /var/www/Video_Kyc_App/backend
+
+          rm -rf node_modules
           npm install --production
-          pm2 restart Video_Kyc_App-backend || \
+
+          pm2 stop Video_Kyc_App-backend || true
+          pm2 delete Video_Kyc_App-backend || true
           pm2 start src/server.js --name Video_Kyc_App-backend
           pm2 save
 
-      # ---------------- FRONTEND ----------------
-      - name: Build Frontend
+      - name: Verify Backend Health
         run: |
-          cd frontend
-          npm install
-          NODE_OPTIONS="--max-old-space-size=2048" npm run build
+          sleep 5
+          curl -f http://localhost:5000/api/health
+
+      # ---- FRONTEND DEPLOY ----
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: /tmp/frontend-dist
+
+      - name: Deploy frontend files
+        run: |
+          sudo rm -rf /var/www/Video_Kyc_App/frontend/dist
+          sudo mkdir -p /var/www/Video_Kyc_App/frontend/dist
+          sudo cp -r /tmp/frontend-dist/* /var/www/Video_Kyc_App/frontend/dist
 
           sudo nginx -t
           sudo systemctl reload nginx
 
-      # ---------------- SLACK ----------------
-      - name: Slack Notification – Deploy Success
+      # ---- SLACK SUCCESS ----
+      - name: Slack – Deploy Success
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"✅ *Deployment Successful!*\\nApp: Video_Kyc_App\\nBranch: main\\nDeployed by: ${{ github.actor }}\"}" \
+          --data "{\"text\":\"✅ Video KYC deployed successfully\nBranch: main\nBy: ${{ github.actor }}\"}" \
           ${{ secrets.SLACK_WEBHOOK_URL }}
