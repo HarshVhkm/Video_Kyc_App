@@ -10,6 +10,8 @@ router.post("/resend-otp", authController.resendOtp);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/verify-forgot-otp", authController.verifyForgotOtp);
 router.post("/reset-password", authController.resetPassword);
+router.post("/logout", authController.logout);
+
 
 // Utility route (for testing/development)
 router.post("/hash-password", authController.hashPassword);

@@ -159,3 +159,11 @@ exports.hashPassword = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    return res.json({ message: "Logged out successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
