@@ -27,23 +27,41 @@ const Header = () => {
   const [profile, setProfile] = useState({});
   const open = Boolean(anchorEl);
 
-  // Fetch profile details when menu opens
-  const handleAvatarClick = (e) => {
-    setAnchorEl(e.currentTarget);
+  // ⭐ LOAD PROFILE ONCE ON PAGE LOAD + AFTER LOGIN
+  useEffect(() => {
+    // Load cached profile first
+    const savedProfile = localStorage.getItem("profile");
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    }
+
+    // Fetch from backend
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch("http://localhost:5000/api/agent/profile", {
-  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-})
-  .then((res) => res.json())
-  .then((data) => setProfile(data))
-  .catch((err) => console.error(err));
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setProfile(data);
+        localStorage.setItem("profile", JSON.stringify(data));
+      })
+      .catch((err) =>
+        console.error("Profile Fetch Error:", err)
+      );
+  }, []);
 
+  // ⭐ Avatar only opens menu (no fetch here!)
+  const handleAvatarClick = (e) => {
+    setAnchorEl(e.currentTarget);
   };
 
   const handleClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("profile");
     navigate("/login");
   };
 
@@ -56,7 +74,7 @@ const Header = () => {
         borderColor: "divider",
         py: 2,
         px: 3,
-        width: "100%",
+        width: "100%"
       }}
     >
       <Box
@@ -66,10 +84,10 @@ const Header = () => {
           justifyContent: "space-between",
           width: "100%",
           maxWidth: "1830px",
-          mx: "auto",
+          mx: "auto"
         }}
       >
-        {/* Logo + Hello */}
+        {/* Left Side */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box component="img" src={logo} alt="Digi Khata Logo" sx={{ height: 32 }} />
 
@@ -85,7 +103,6 @@ const Header = () => {
 
         {/* Right side */}
         <Box sx={{ display: "flex", alignItems: "center", gap: isMobile ? 1 : 3 }}>
-          {/* Avatar */}
           <Avatar
             onClick={handleAvatarClick}
             sx={{
@@ -93,7 +110,7 @@ const Header = () => {
               height: 32,
               bgcolor: "primary.main",
               fontSize: "0.875rem",
-              cursor: "pointer",
+              cursor: "pointer"
             }}
           >
             {profile.agentName ? profile.agentName[0] : "A"}
@@ -112,14 +129,14 @@ const Header = () => {
         </Box>
       </Box>
 
-      {/* Profile Popup Menu */}
+      {/* Profile Dropdown Menu */}
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         PaperProps={{
           elevation: 4,
-          sx: { width: 260, borderRadius: 3, p: 1 },
+          sx: { width: 260, borderRadius: 3, p: 1 }
         }}
       >
         <Box sx={{ p: 2 }}>
@@ -134,7 +151,7 @@ const Header = () => {
         <MenuItem
           onClick={() => {
             handleClose();
-            navigate("/change-password"); // your EXISTING component
+            navigate("/change-password");
           }}
         >
           <ListItemIcon>
