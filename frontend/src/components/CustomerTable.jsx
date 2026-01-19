@@ -102,7 +102,7 @@
 // };
 
 // export default CustomerTable;
-
+import PastKycCallsTable from "../pages/AgentDashboard/PastKycCallsTable"
 import { useState } from "react";
 import { 
   Box, 
@@ -372,7 +372,7 @@ const CustomerTable = () => {
           </>
         );
 
-      case "Past KYC Calls":
+      // case "Past KYC Calls":
         return (
           <Box sx={{ mt: 2, p: 3, textAlign: 'center' }}>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -383,6 +383,14 @@ const CustomerTable = () => {
             </Typography>
           </Box>
         );
+
+
+        case "Past KYC Calls":
+  return (
+    <Box sx={{ mt: 2 }}>
+      <PastKycCallsTable />
+    </Box>
+  );
 
       case "Draft List":
         return (
