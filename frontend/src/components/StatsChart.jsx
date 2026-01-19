@@ -25,29 +25,6 @@ const StatsChart = () => {
     discrepancy: 0,
   });
 
-  // useEffect(() => {
-  //   const loadDashboard = async () => {
-  //     try {
-  //       let range = "today";
-  //       if (selectedOption === "This Week") range = "week";
-  //       if (selectedOption === "This Month") range = "month";
-
-  //       const res = await fetchDashboardData(range);
-
-  //       setChartValues({
-  //         approved: res?.data?.approved ?? 0,
-  //         rejected: res?.data?.rejected ?? 0,
-  //         discrepancy: res?.data?.discrepancy ?? 0,
-  //       });
-  //     } catch (error) {
-  //       console.error("Dashboard error:", error);
-  //     }
-  //   };
-
-  //   loadDashboard();
-  // }, [selectedOption]);
-
-
 
   useEffect(() => {
   const loadDashboard = async () => {
