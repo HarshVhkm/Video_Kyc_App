@@ -34,15 +34,16 @@ const OtpPage = () => {
   // ---------------------------------------
   // Detect LOGIN or FORGOT mode
   // ---------------------------------------
-  const detectMode = () => {
-    const fp = localStorage.getItem("fp_agtLoginId");
-    const login = localStorage.getItem("agtLoginId");
+const detectMode = () => {
+  // If you are on forgot-password OTP route → always FORGOT
+  if (location.pathname.includes("forgot-password-otp")) {
+    return "FORGOT";
+  }
 
-    if (fp && !login) return "FORGOT";
-    if (login && !fp) return "LOGIN";
+  // Otherwise → LOGIN
+  return "LOGIN";
+};
 
-    return location.pathname.includes("forgot") ? "FORGOT" : "LOGIN";
-  };
 
   const otpPurpose = detectMode();
 
@@ -53,8 +54,8 @@ const OtpPage = () => {
     LOGIN: {
       userIdKey: "agtLoginId",
       expiryKey: "otpExpiry",
-      verifyEndpoint: "http://localhost:5000/api/auth/verify-otp",
-      resendEndpoint: "http://localhost:5000/api/auth/resend-otp",
+      verifyEndpoint: `http://localhost:5000/api/auth/verify-otp`,
+      resendEndpoint: `http://localhost:5000/api/auth/resend-otp`,
       successRedirect: "/work-dashboard",
       backLink: "/login",
       successAction: (data) => localStorage.setItem("token", data.token),
@@ -66,9 +67,9 @@ const OtpPage = () => {
     FORGOT: {
       userIdKey: "fp_agtLoginId",
       expiryKey: "fp_expiry",
-      verifyEndpoint: "http://localhost:5000/api/auth/verify-forgot-otp",
-      resendEndpoint: "http://localhost:5000/api/auth/resend-otp",
-      successRedirect: "/change-password",
+      verifyEndpoint: `http://localhost:5000/api/auth/verify-forgot-otp`,
+      resendEndpoint: `http://localhost:5000/api/auth/resend-otp`,
+      successRedirect: "/reset-password",
       backLink: "/forgot-password",
       successAction: (data) => localStorage.setItem("resetToken", data.resetToken),
       cleanup: () => {
@@ -279,6 +280,7 @@ const OtpPage = () => {
               onClick={handleResendOtp}
               disabled={loading}
               sx={{ mb: 3 }}
+              style={{color: "#1C43A6"}}
             >
               {resending ? "Sending..." : "Resend OTP"}
             </Button>
@@ -289,6 +291,7 @@ const OtpPage = () => {
               variant="contained"
               disabled={loading || otp.some((d) => d === "")}
               sx={{ py: 1.5 }}
+              style={{backgroundColor: "#1C43A6", color:"white"}}
             >
               {loading ? (
                 <CircularProgress size={24} sx={{ color: "white" }} />
@@ -301,6 +304,7 @@ const OtpPage = () => {
               component={Link}
               to={current.backLink}
               sx={{ display: "block", textAlign: "center", mt: 2 }}
+              style={{color: "#1C43A6"}}
             >
               ← Back
             </Typography>

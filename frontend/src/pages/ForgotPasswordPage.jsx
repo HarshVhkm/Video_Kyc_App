@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   Paper,
   Box,
@@ -11,9 +12,10 @@ import {
 } from "@mui/material";
 import { Email, CalendarToday } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
-
 import loginImage from "../assets/login-bg.png";
 import wavingHand from "../assets/waving-hand.png";
+
+
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const ForgotPasswordPage = () => {
     email: "",
     dateOfBirth: "",
   });
+
 
   const handleChange = (field) => (event) => {
     setFormData((prev) => ({
@@ -54,7 +57,7 @@ const ForgotPasswordPage = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        `http://localhost:5000/api/auth/forgot-password`,
         {
           method: "POST",
           headers: { 
@@ -108,7 +111,7 @@ const ForgotPasswordPage = () => {
       
       // User-friendly error messages
       if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-        setError("Cannot connect to server. Please check if backend is running on localhost:5000");
+        setError(`Cannot connect to server. Please check if backend is running on http://localhost:5000`);
       } else {
         setError(err.message || "Something went wrong. Please try again.");
       }
