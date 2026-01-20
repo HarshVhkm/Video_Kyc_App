@@ -2,6 +2,8 @@ const router = require("express").Router();
 
 // Main API routes
 router.use("/auth", require("./auth.routes"));
+//dashboard
+router.use("/kyc", require("./kyc.routes"));
 
 // Health check route
 router.get("/health", (req, res) => {
