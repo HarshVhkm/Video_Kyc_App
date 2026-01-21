@@ -71,7 +71,7 @@ const LiveScheduleTable = ({ customers = [], onInitiateCall }) => {
                     color: "#1C43A6",
                     textTransform: "none",
                     boxShadow: "none",
-                  }}
+                  }}  
                   onClick={() => onInitiateCall(customers)}
                 >
                   Initiate Call
