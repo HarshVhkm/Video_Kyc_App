@@ -19,7 +19,7 @@ const StatsChartAuditor = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("Today");
+  const [selectedOption, setSelectedOption] = useState("all");
   
   const chartData = {
     labels: ["Approved", "Rejected", "Discrepancy"],

@@ -1,5 +1,6 @@
 const authService = require("../services/auth.service");
 
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body; // Changed from agentUserId to email
@@ -114,6 +115,7 @@ exports.verifyForgotOtp = async (req, res) => {
   }
 };
 
+
 exports.resetPassword = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -159,3 +161,6 @@ exports.hashPassword = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
