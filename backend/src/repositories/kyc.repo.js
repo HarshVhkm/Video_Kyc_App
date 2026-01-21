@@ -79,18 +79,45 @@ exports.getMissedCallsKyc = async () => {
 
 
 
-exports.searchKyc = async (query) => {
+exports.searchLiveKyc = async (query) => {
   const [rows] = await db.execute(`
     SELECT
-      w.WaitlistId,
+      l.LiveId,
       w.CustomerName,
       w.ClientName,
-      w.VcipId
-    FROM Video_Kyc_Waitlist w
-    WHERE w.CustomerName LIKE ?
-       OR w.VcipId LIKE ?
-    ORDER BY w.CreatedAt DESC
+      w.VcipId,
+      l.CustomerStatus,
+      l.L_CallStatus,
+      l.CreatedAt
+    FROM Live_Schedule_Kyc l
+    JOIN Video_Kyc_Waitlist w ON w.WaitlistId = l.WaitlistId
+    WHERE (w.CustomerName LIKE ? OR w.VcipId LIKE ?)
+      AND l.CustomerStatus IN ('Live', 'Scheduled')
+    ORDER BY l.CreatedAt DESC
   `, [`%${query}%`, `%${query}%`]);
 
   return rows;
 };
+
+exports.searchMissedKyc = async (query) => {
+  const [rows] = await db.execute(`
+    SELECT
+      m.MissedId,
+      w.CustomerName,
+      w.ClientName,
+      w.VcipId,
+      m.MobileNumber,
+      m.CustomerStatus,
+      m.Remark,
+      m.MissedDateTime,
+      m.CreatedAt
+    FROM Missed_Calls_Kyc m
+    JOIN Video_Kyc_Waitlist w ON w.WaitlistId = m.WaitlistId
+    WHERE w.CustomerName LIKE ?
+       OR w.VcipId LIKE ?
+    ORDER BY m.MissedDateTime DESC
+  `, [`%${query}%`, `%${query}%`]);
+
+  return rows;
+};
+

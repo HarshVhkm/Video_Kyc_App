@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLiveSchedule, getMissedCalls, searchKyc } from "../api/kyc.api";
+import { getLiveSchedule, getMissedCalls, searchKyc } from "../api/videoKycWaitlist.api";
 
 export const useKycData = (activeView, searchQuery) => {
   const [customers, setCustomers] = useState([]);

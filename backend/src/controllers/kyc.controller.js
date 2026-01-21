@@ -56,16 +56,16 @@ exports.getMissedCallsKyc = async (req, res) => {
 exports.searchKyc = async (req, res) => {
   try {
     const query = (req.query.q || "").trim();
+    const view = req.query.view || "live";
 
     if (query.length < 2) {
-      return res.json({
-        success: true,
-        message: "Enter at least 2 characters",
-        data: [],
-      });
+      return res.json({ success: true, data: [] });
     }
 
-    const data = await kycRepo.searchKyc(query);
+    const data =
+      view === "live"
+        ? await kycRepo.searchLiveKyc(query)
+        : await kycRepo.searchMissedKyc(query);
 
     res.status(200).json({
       success: true,
@@ -78,6 +78,7 @@ exports.searchKyc = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 exports.refreshDashboard = async (req, res) => {
