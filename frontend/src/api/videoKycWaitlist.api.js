@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/api/kyc";
+const BASE_URL = `${API_BASE_URL}/api/kyc`;
 
 const handleResponse = async (res) => {
   if (!res.ok) {

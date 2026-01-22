@@ -40,7 +40,7 @@ const Header = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch(`http://localhost:5000/api/agent/profile`, {
+    fetch(`${API_BASE_URL}/api/agent/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => res.json())
