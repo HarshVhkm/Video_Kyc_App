@@ -18,7 +18,7 @@ const StatusChip = ({ status }) => {
     return <Chip label="Approved" color="success" variant="outlined" />;
   if (status === "Rejected")
     return <Chip label="Rejected" color="error" variant="outlined" />;
-  return <Chip label="Discrepancy" color="warning" variant="outlined" />;
+  return <Chip label="Discrepancy" color="primary" variant="outlined" />;
 };
 
 const PastKycCallsTable = () => {
