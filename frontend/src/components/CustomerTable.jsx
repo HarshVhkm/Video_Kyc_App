@@ -62,7 +62,7 @@ const CustomerTable = () => {
   const [liveCount, setLiveCount] = useState(0);
   const [missedCount, setMissedCount] = useState(0);
 
-  const API_BASE = "http://localhost:5000/api/kyc";
+  const API_BASE = `${API_BASE_URL}/api/kyc`;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
