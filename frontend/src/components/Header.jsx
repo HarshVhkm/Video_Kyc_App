@@ -1,3 +1,5 @@
+import API_BASE_URL from "../config/api";
+
 import { Bell } from "lucide-react";
 import {
   Avatar,

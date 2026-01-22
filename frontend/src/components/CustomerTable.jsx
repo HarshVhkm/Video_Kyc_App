@@ -27,6 +27,8 @@ import CallInitiationModal from "../components/CallInitiationModal";
 import CallEndModal from "../components/CallEndModal";
 
 /* ---------------- debounce hook ---------------- */
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const useDebounce = (value, delay = 400) => {
   const [debounced, setDebounced] = useState(value);
 
