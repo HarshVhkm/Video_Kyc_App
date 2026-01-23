@@ -8,7 +8,7 @@ const app = express();
 
 // Enable CORS for all origins (development only)
 app.use(cors({
-  origin: `http://localhost:5173`, // Allow all origins
+  origin: true, // Allow all origins
   credentials: true
 }));
 
