@@ -1,10 +1,7 @@
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
 
-
-
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
-
-const apiFetch = async (url, options = {}) => {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+const apiClient = async (path, options = {}) => {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -13,13 +10,12 @@ const apiFetch = async (url, options = {}) => {
     ...options,
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "API Error");
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error || "API Error");
   }
 
-  return data;
+  return res.json();
 };
 
-export default apiFetch;
+export default apiClient;

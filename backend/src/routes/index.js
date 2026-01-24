@@ -1,6 +1,5 @@
 const router = require("express").Router();
 
-// Main API routes
 router.use("/auth", require("./auth.routes"));
 
 router.use("/agent", require("./agent.routes"));
@@ -16,6 +15,12 @@ router.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     service: "Video KYC Backend"
   });
+
+
+
+
+  
+  
 });
 
 module.exports = router;

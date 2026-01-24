@@ -57,7 +57,7 @@ const ForgotPasswordPage = () => {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/auth/forgot-password`,
+        `${API_BASE_URL}/auth/forgot-password`,
         {
           method: "POST",
           headers: { 

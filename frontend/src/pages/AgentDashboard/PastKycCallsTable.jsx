@@ -8,11 +8,10 @@ import {
   Paper,
   Chip,
   Box,
-  Typography
+  Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import  getPastKycCalls  from "../../api/kyc.api";
 
+/* ---------------- Status Chip ---------------- */
 const StatusChip = ({ status }) => {
   if (status === "Approved")
     return <Chip label="Approved" color="success" variant="outlined" />;
@@ -21,25 +20,8 @@ const StatusChip = ({ status }) => {
   return <Chip label="Discrepancy" color="primary" variant="outlined" />;
 };
 
-const PastKycCallsTable = () => {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPastKyc();
-  }, []);
-
-  const fetchPastKyc = async () => {
-    try {
-      const res = await getPastKycCalls();
-      setRows(res.data || []);
-    } catch (err) {
-      console.error("Past KYC fetch failed", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+/* ---------------- Table ---------------- */
+const PastKycCallsTable = ({ data = [], loading = false }) => {
   if (loading) {
     return (
       <Box sx={{ py: 4, textAlign: "center" }}>
@@ -51,32 +33,43 @@ const PastKycCallsTable = () => {
   return (
     <TableContainer component={Paper}>
       <Table>
+        {/* ---------- HEADER ---------- */}
         <TableHead>
           <TableRow>
             <TableCell><b>Customer Name</b></TableCell>
             <TableCell><b>Client Name</b></TableCell>
             <TableCell><b>VCIP ID</b></TableCell>
+            <TableCell><b>Contact Number</b></TableCell>
             <TableCell><b>Connection ID</b></TableCell>
             <TableCell><b>Call Status</b></TableCell>
           </TableRow>
         </TableHead>
 
+        {/* ---------- BODY ---------- */}
         <TableBody>
-          {rows.map((row, index) => (
-            <TableRow key={index}>
-              <TableCell>{row.customerName}</TableCell>
-              <TableCell>{row.clientName}</TableCell>
-              <TableCell>{row.vcipId}</TableCell>
-              <TableCell>{row.connectionId}</TableCell>
+          {data.map((row, index) => (
+            <TableRow key={row.PastKycId || row.vcipId || index}>
+              <TableCell>{row.customerName || "-"}</TableCell>
+              <TableCell>{row.clientName || "-"}</TableCell>
+              <TableCell>{row.vcipId || "-"}</TableCell>
+
+              {/* ✅ Contact Number */}
+              <TableCell>               
+                    {row.mobileNumber || "-"}                      
+              </TableCell>
+
+              <TableCell>{row.connectionId ?? "-"}</TableCell>
+
               <TableCell>
                 <StatusChip status={row.callStatus} />
               </TableCell>
             </TableRow>
           ))}
 
-          {rows.length === 0 && (
+          {/* ---------- EMPTY STATE ---------- */}
+          {data.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} align="center">
+              <TableCell colSpan={6} align="center">
                 No Past KYC Records Found
               </TableCell>
             </TableRow>

@@ -7,10 +7,11 @@ exports.getPastKycCalls = async (req, res) => {
         w.CustomerName AS customerName,
         w.ClientName AS clientName,
         p.VcipId AS vcipId,
+        w.MobileNumber AS mobileNumber, 
         p.ConnectionId AS connectionId,
         p.CallStatus AS callStatus
       FROM Past_Kyc_Calls p
-      JOIN Video_Kyc_Waitlist w 
+      LEFT JOIN Video_Kyc_Waitlist w
         ON w.WaitlistId = p.WaitlistId
       ORDER BY p.CreatedAt DESC
     `);

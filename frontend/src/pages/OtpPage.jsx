@@ -48,15 +48,12 @@ const detectMode = () => {
 
   const otpPurpose = detectMode();
 
-  // ---------------------------------------
-  // Config
-  // ---------------------------------------
   const config = {
     LOGIN: {
       userIdKey: "agtLoginId",
       expiryKey: "otpExpiry",
-      verifyEndpoint: `${API_BASE_URL}/api/auth/verify-otp`,
-      resendEndpoint: `${API_BASE_URL}/api/auth/resend-otp`,
+      verifyEndpoint: `${API_BASE_URL}/auth/verify-otp`,
+      resendEndpoint: `${API_BASE_URL}/auth/resend-otp`,
       successRedirect: "/work-dashboard",
       backLink: "/login",
       successAction: (data) => localStorage.setItem("token", data.token),
@@ -68,8 +65,8 @@ const detectMode = () => {
     FORGOT: {
       userIdKey: "fp_agtLoginId",
       expiryKey: "fp_expiry",
-      verifyEndpoint: `${API_BASE_URL}/api/auth/verify-forgot-otp`,
-      resendEndpoint: `${API_BASE_URL}/api/auth/resend-otp`,
+      verifyEndpoint: `${API_BASE_URL}/auth/verify-forgot-otp`,
+      resendEndpoint: `${API_BASE_URL}/auth/resend-otp`,
       successRedirect: "/reset-password",
       backLink: "/forgot-password",
       successAction: (data) => localStorage.setItem("resetToken", data.resetToken),
