@@ -11,10 +11,20 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (Postman, curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(null, false); // ❗ DO NOT throw error
+    },
     credentials: true,
   })
 );
+
 
 // Middleware
 app.use(express.json());
@@ -30,11 +40,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use("/v1", routes);
+// Routess
+app.use("/api", routes);
 
 // Health check
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.json({
     success: true,
     message: "DigiKhata Backend API",
