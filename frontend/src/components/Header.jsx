@@ -17,7 +17,7 @@ import {
 import KeyIcon from "@mui/icons-material/VpnKey";
 import LogoutIcon from "@mui/icons-material/Logout";
 import logo from "../assets/Logo.png";
-import  WavingHand  from "../assets/waving-hand.png";
+import WavingHand from "../assets/waving-hand.png";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -30,13 +30,13 @@ const Header = () => {
   const [profile, setProfile] = useState({});
   const open = Boolean(anchorEl);
 
-  // ⭐ LOAD PROFILE ONCE ON PAGE LOAD + AFTER LOGINs
+  // ⭐ LOAD PROFILE ONCE ON PAGE LOAD + AFTER LOGIN
   useEffect(() => {
-    // Load cached profile firs
+    // Load cached profile first
     const savedProfile = localStorage.getItem("profile");
     if (savedProfile) {
       setProfile(JSON.parse(savedProfile));
-    }  
+    }
 
     // Fetch from backend
     const token = localStorage.getItem("token");
@@ -45,17 +45,24 @@ const Header = () => {
     fetch(`${API_BASE_URL}/agent/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Profile fetch failed");
+        }
+        return res.json();
+      })
       .then((data) => {
+        console.log("PROFILE API DATA:", data);
         setProfile(data);
         localStorage.setItem("profile", JSON.stringify(data));
       })
       .catch((err) =>
-        console.error("Profile Fetch Error:", err)
+        console.error("Profile Fetch Error:", err.message)
       );
   }, []);
 
-  // ⭐ Avatar only opens menu (no fetch here!)
+  // ⭐ Avatar only opens menu
   const handleAvatarClick = (e) => {
     setAnchorEl(e.currentTarget);
   };
@@ -98,7 +105,13 @@ const Header = () => {
             <>
               <Divider orientation="vertical" flexItem sx={{ height: 24 }} />
               <Typography variant="h6" sx={{ whiteSpace: "nowrap" }}>
-                Hello, {profile.agentName || "Agent"} <Box component="img" src={WavingHand} alt="Waving Hand" sx={{ height: 24, gap: 2}} />
+                Hello, {profile.agentName || "Agent"}{" "}
+                <Box
+                  component="img"
+                  src={WavingHand}
+                  alt="Waving Hand"
+                  sx={{ height: 24, ml: 1 }}
+                />
               </Typography>
             </>
           )}

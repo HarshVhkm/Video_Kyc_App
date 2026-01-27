@@ -3,16 +3,22 @@ const authService = require("../services/auth.service");
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body; // Changed from agentUserId to email
+    const { email, password, roleId } = req.body; // Changed from agentUserId to email
     
-    if (!email || !password) {
+    if (!email || !password || !roleId) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const result = await authService.login({ email, password }); // Updated
+    const result = await authService.login({ email, password, roleId }); // Updated
     return res.json(result);
     
   } catch (err) {
+
+    if (err.message.includes("Access denied")) {
+      return res.status(403).json({ message: err.message });
+    }
+
+
     console.error("Login error:", err.message);
     
     if (err.message.includes("not found")) {

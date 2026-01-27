@@ -7,11 +7,14 @@ exports.findByAgtLoginId = async (agtLoginId) => {
        al.AgtLoginId, 
        al.AgtPassword, 
        al.IsActive,
+       al.RoleId,
+       r.RoleName,
        ad.AgentId,
        ad.Email,
        ad.AgentName
      FROM AgentLogin al
      LEFT JOIN AgentsDetails ad ON al.AgtLoginId = ad.AgtLoginId
+     LEFT JOIN Roles r ON al.RoleId = r.RoleId
      WHERE al.AgtLoginId = ?`,
     [agtLoginId]
   );
@@ -21,9 +24,10 @@ exports.findByAgtLoginId = async (agtLoginId) => {
 
 exports.findByEmail = async (email) => {
   const [rows] = await db.query(
-    `SELECT a.AgentId, a.AgentName, a.Email, a.Dob, al.AgtLoginId, al.AgtPassword, al.IsActive 
+    `SELECT a.AgentId, a.AgentName, a.Email, a.Dob, al.AgtLoginId, al.AgtPassword, al.IsActive, al.RoleId, r.RoleName
      FROM AgentsDetails a 
      JOIN AgentLogin al ON a.AgtLoginId = al.AgtLoginId 
+     LEFT JOIN Roles r ON al.RoleId = r.RoleId
      WHERE a.Email = ?`,
     [email]
   );
