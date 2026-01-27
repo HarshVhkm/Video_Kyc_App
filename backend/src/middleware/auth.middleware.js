@@ -11,11 +11,17 @@ module.exports = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Store login ID from token
-    req.agtLoginId = decoded.agtLoginId;
+    // ✅ Always attach user object to req.user
+    req.user = {
+      agtLoginId: decoded.agtLoginId,
+      roleId: decoded.roleId,
+      roleName: decoded.roleName,
+    };
+
 
     next();
   } catch (err) {
+    console.error("Auth middleware error:", err.message);
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

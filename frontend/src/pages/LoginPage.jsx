@@ -21,26 +21,31 @@ import { Link, useNavigate } from 'react-router-dom';
 import loginImage from '../assets/login-bg.png';
 import wavingHand from '../assets/waving-hand.png';
 
-
-
 const LoginPage = () => {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     role: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-   useEffect(() => {
-  localStorage.removeItem("agtLoginId"); 
-  localStorage.removeItem("otpExpiry"); 
-  localStorage.removeItem("token"); 
-}, []);
+  const roleMap = {
+    agent: 1,
+    auditor: 2,
+    "super-admin": 3,
+  };
+
+  useEffect(() => {
+    localStorage.removeItem("agtLoginId");
+    localStorage.removeItem("otpExpiry");
+    localStorage.removeItem("token");
+    localStorage.removeItem("roleId");
+  }, []);
 
   const handleChange = (field) => (event) => {
     setFormData(prev => ({
@@ -56,12 +61,11 @@ const LoginPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     if (!formData.email || !formData.password || !formData.role) {
       setError('Please fill all fields');
       return;
     }
-   
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -75,17 +79,17 @@ const LoginPage = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          roleId: roleMap[formData.role], // ✅ added
         }),
       });
 
-      
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
@@ -99,27 +103,22 @@ const LoginPage = () => {
         throw new Error(data.message || 'Login failed. Please check your credentials.');
       }
 
-      
       localStorage.setItem('agtLoginId', data.agtLoginId);
-
+      localStorage.setItem('roleId', roleMap[formData.role]); // ✅ added
 
       if (data.expiresAt) {
         localStorage.setItem('otpExpiry', data.expiresAt);
       } else {
-        // Fallback: set 5 minutes from now
         const fallbackExpiry = new Date(Date.now() + 5 * 60 * 1000);
         localStorage.setItem('otpExpiry', fallbackExpiry.toISOString());
       }
 
-      
       localStorage.removeItem('token');
-      
-      
       navigate('/otp');
-      
+
     } catch (error) {
       console.error('Login error:', error);
-      
+
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         setError("Cannot connect to server. Please try again later.");
       } else {
@@ -143,7 +142,6 @@ const LoginPage = () => {
         overflow: 'hidden'
       }}
     >
-     
       <Box
         sx={{
           width: { xs: '0%', lg: '60%' },
@@ -160,7 +158,6 @@ const LoginPage = () => {
         />
       </Box>
 
-      
       <Box
         sx={{
           width: { xs: '100%', lg: '40%' },
@@ -185,17 +182,16 @@ const LoginPage = () => {
             justifyContent: { xs: 'center', sm: 'flex-start' }
           }}
         >
-         
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, justifyContent: 'left' }}>
               <Typography
                 variant="h3"
                 component="h1"
-                sx={{ 
-                  fontWeight: 700, 
-                  color: '#212529', 
-                  fontSize: { xs: '2rem', sm: '2.125rem', md: '2.25rem' }, 
-                  lineHeight: 1.2 
+                sx={{
+                  fontWeight: 700,
+                  color: '#212529',
+                  fontSize: { xs: '2rem', sm: '2.125rem', md: '2.25rem' },
+                  lineHeight: 1.2
                 }}
               >
                 Hello, Again!
@@ -204,31 +200,30 @@ const LoginPage = () => {
                 component="img"
                 src={wavingHand}
                 alt="Waving hand"
-                sx={{ 
-                  width: { xs: '32px', sm: '34px', md: '36px' }, 
-                  height: { xs: '32px', sm: '34px', md: '36px' } 
+                sx={{
+                  width: { xs: '32px', sm: '34px', md: '36px' },
+                  height: { xs: '32px', sm: '34px', md: '36px' }
                 }}
               />
             </Box>
             <Typography
               variant="h6"
-              sx={{ 
-                color: '#212529', 
-                fontWeight: 500, 
-                fontSize: { xs: '1rem', sm: '1.05rem', md: '1.1rem' }, 
-                display: 'flex' 
+              sx={{
+                color: '#212529',
+                fontWeight: 500,
+                fontSize: { xs: '1rem', sm: '1.05rem', md: '1.1rem' },
+                display: 'flex'
               }}
             >
               Welcome Back
             </Typography>
           </Box>
 
-          
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3, 
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
                 borderRadius: '8px',
                 '& .MuiAlert-message': { fontSize: '0.875rem' }
               }}
@@ -247,19 +242,7 @@ const LoginPage = () => {
               onChange={handleChange('email')}
               required
               disabled={loading}
-              sx={{
-                mb: 3,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  '& fieldset': { borderColor: '#dee2e6' },
-                  '&:hover fieldset': { borderColor: '#1C43A6' },
-                  '&.Mui-focused fieldset': { borderColor: '#1C43A6' },
-                },
-                '& .MuiInputLabel-root': { 
-                  color: '#6c757d', 
-                  '&.Mui-focused': { color: '#1C43A6' } 
-                },
-              }}
+              sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -267,7 +250,6 @@ const LoginPage = () => {
                   </InputAdornment>
                 ),
               }}
-              helperText="Enter your registered email address"
             />
 
             <TextField
@@ -279,19 +261,7 @@ const LoginPage = () => {
               onChange={handleChange('password')}
               required
               disabled={loading}
-              sx={{
-                mb: 3,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  '& fieldset': { borderColor: '#dee2e6' },
-                  '&:hover fieldset': { borderColor: '#1C43A6' },
-                  '&.Mui-focused fieldset': { borderColor: '#1C43A6' },
-                },
-                '& .MuiInputLabel-root': { 
-                  color: '#6c757d', 
-                  '&.Mui-focused': { color: '#1C43A6' } 
-                },
-              }}
+              sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -303,7 +273,6 @@ const LoginPage = () => {
                     <IconButton
                       onClick={handleClickShowPassword}
                       edge="end"
-                      sx={{ color: '#6c757d' }}
                       disabled={loading}
                     >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
@@ -314,23 +283,12 @@ const LoginPage = () => {
             />
 
             <FormControl fullWidth sx={{ mb: 4 }} disabled={loading}>
-              <InputLabel sx={{ 
-                color: '#6c757d', 
-                '&.Mui-focused': { color: '#1C43A6' } 
-              }}>
-                Select Role
-              </InputLabel>
+              <InputLabel>Select Role</InputLabel>
               <Select
                 value={formData.role}
                 onChange={handleChange('role')}
                 label="Select Role"
                 required
-                sx={{
-                  borderRadius: '8px',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#dee2e6' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1C43A6' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1C43A6' },
-                }}
               >
                 <MenuItem value="agent">Agent</MenuItem>
                 <MenuItem value="auditor">Auditor</MenuItem>
@@ -343,37 +301,13 @@ const LoginPage = () => {
               fullWidth
               variant="contained"
               disabled={loading}
-              sx={{
-                backgroundColor: '#1C43A6',
-                color: 'white',
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                borderRadius: '8px',
-                '&:hover': { backgroundColor: '#15337D' },
-                '&:disabled': { backgroundColor: '#cccccc' },
-                mb: 2
-              }}
+              sx={{ mb: 2 }}
             >
-              {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Login'}
+              {loading ? <CircularProgress size={24} /> : 'Login'}
             </Button>
 
             <Box sx={{ textAlign: 'center' }}>
-              <Typography
-                component={Link}
-                to="/forgot-password"
-                sx={{
-                  color: '#1C43A6',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': { 
-                    textDecoration: 'underline', 
-                    color: '#15337D' 
-                  }
-                }}
-              >
+              <Typography component={Link} to="/forgot-password">
                 Forgot Password?
               </Typography>
             </Box>

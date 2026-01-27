@@ -34,7 +34,7 @@ import getPastKycCalls from "../api/kyc.api";
 import searchPastKycCalls from "../api/pastsearch";
 
 /* ---------------- debounce hook ---------------- */
-const api_base_url = import.meta.env.VITE_API_BASE_URL;
+import.meta.env.VITE_API_BASE_URL;
 // const api_base_url = `${API_BASE_URL}/api/kyc`;
 const useDebounce = (value, delay = 400) => {
   const [debounced, setDebounced] = useState(value);
@@ -58,7 +58,7 @@ const CustomerTable = () => {
   const debouncedSearch = useDebounce(search);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 5;
 
   /* ✅ MODAL STATES */
   const [initiationModalOpen, setInitiationModalOpen] = useState(false);

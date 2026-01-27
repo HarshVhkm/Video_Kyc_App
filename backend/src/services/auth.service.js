@@ -5,13 +5,20 @@ const otpRepo = require("../repositories/otp.repo");
 const mailer = require("../utils/mailer");
 const { generateOTP } = require("../utils/otp");
 
-exports.login = async ({ email, password }) => {
+exports.login = async ({ email, password, roleId}) => {
   const agent = await agentRepo.findByEmail(email);
   
   if (!agent) {
-    throw new Error("Agent not found with this email");
+    let roleName = "User";
+
+    if (roleId === 1) roleName = "Agent";
+    else if (roleId === 2) roleName = "Auditor";
+    else if (roleId === 3) roleName = "Super Admin";
+
+    throw new Error(`${roleName} not found with this email`);
   }
   
+
   if (!agent.IsActive) {
     throw new Error("Agent account is inactive");
   }
@@ -21,6 +28,12 @@ exports.login = async ({ email, password }) => {
   if (!match) {
     throw new Error("Invalid password");
   }
+
+  if (agent.RoleId !== roleId) {
+    throw new Error("Access denied");
+  }
+
+
 
   // Generate and send OTP
  const otp = generateOTP();
@@ -42,15 +55,23 @@ exports.verifyOtp = async ({ agtLoginId, otp }) => {
     throw new Error("Invalid or expired OTP");
   }
 
+  const agent = await agentRepo.findByAgtLoginId(agtLoginId);
   const token = jwt.sign(
-    { agtLoginId },
+    {
+      agtLoginId: agent.AgtLoginId,
+      roleId: agent.RoleId,
+      roleName: agent.RoleName,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
   );
 
   return { 
     message: "Login successful", 
-    token 
+    token,
+    role: agent.RoleName,
+    agtLoginId: agent.AgtLoginId,
+    agentName: agent.AgentName,
   };
 };
 
