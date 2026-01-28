@@ -4,42 +4,40 @@ const agentRepo = require("../repositories/agent.repo");
 const otpRepo = require("../repositories/otp.repo");
 const mailer = require("../utils/mailer");
 const { generateOTP } = require("../utils/otp");
+const ApiError = require("../utils/ApiError"); // ✅ added
 
 exports.login = async ({ email, password }) => {
   const agent = await agentRepo.findByEmail(email);
-  
+
   if (!agent) {
-    throw new Error("Agent not found with this email");
-  }
-  
-  if (!agent.IsActive) {
-    throw new Error("Agent account is inactive");
+    throw new ApiError(404, "Agent not found with this email");
   }
 
-  // Compare password
+  if (!agent.IsActive) {
+    throw new ApiError(403, "Agent account is inactive");
+  }
+
   const match = await bcrypt.compare(password, agent.AgtPassword);
   if (!match) {
-    throw new Error("Invalid password");
+    throw new ApiError(401, "Invalid password");
   }
 
-  // Generate and send OTP
- const otp = generateOTP();
-await otpRepo.create(agent.AgtLoginId, otp, 'LOGIN');
-
+  const otp = generateOTP();
+  await otpRepo.create(agent.AgtLoginId, otp, "LOGIN");
   await mailer.sendOTP(agent.Email, otp);
 
-  return { 
-    message: "OTP sent to your registered email", 
+  return {
+    message: "OTP sent to your registered email",
     agtLoginId: agent.AgtLoginId,
-    agentId: agent.AgentId 
+    agentId: agent.AgentId,
   };
 };
-exports.verifyOtp = async ({ agtLoginId, otp }) => {
-  const valid = await otpRepo.verify(agtLoginId, otp, 'LOGIN');
 
-  
+exports.verifyOtp = async ({ agtLoginId, otp }) => {
+  const valid = await otpRepo.verify(agtLoginId, otp, "LOGIN");
+
   if (!valid) {
-    throw new Error("Invalid or expired OTP");
+    throw new ApiError(400, "Invalid or expired OTP");
   }
 
   const token = jwt.sign(
@@ -48,14 +46,16 @@ exports.verifyOtp = async ({ agtLoginId, otp }) => {
     { expiresIn: "1d" }
   );
 
-  return { 
-    message: "Login successful", 
-    token 
+  return {
+    message: "Login successful",
+    token,
   };
 };
 
 exports.resendOtp = async ({ agtLoginId, purpose }) => {
-  if (!purpose) throw new Error("OTP purpose required");
+  if (!purpose) {
+    throw new ApiError(400, "OTP purpose required");
+  }
 
   await otpRepo.invalidateAll(agtLoginId, purpose);
 
@@ -63,7 +63,9 @@ exports.resendOtp = async ({ agtLoginId, purpose }) => {
   await otpRepo.create(agtLoginId, otp, purpose);
 
   const agent = await agentRepo.findByAgtLoginId(agtLoginId);
-  if (!agent) throw new Error("Agent not found");
+  if (!agent) {
+    throw new ApiError(404, "Agent not found");
+  }
 
   await mailer.sendOTP(agent.Email, otp);
 
@@ -71,50 +73,45 @@ exports.resendOtp = async ({ agtLoginId, purpose }) => {
 
   return {
     message: "New OTP sent",
-    expiresAt: expiry
+    expiresAt: expiry,
   };
 };
 
 exports.forgotPassword = async ({ email, dob }) => {
   const agent = await agentRepo.findByEmail(email);
-  
+
   if (!agent) {
-    throw new Error("Agent not found with this email");
+    throw new ApiError(404, "Agent not found with this email");
   }
 
-  // Compare dates
   const frontendDate = new Date(dob);
   const dbDate = new Date(agent.Dob);
-  
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-  };
 
-  const frontendFormatted = formatDate(frontendDate);
-  const dbFormatted = formatDate(dbDate);
+  const formatDate = (date) => date.toISOString().split("T")[0];
 
-  if (frontendFormatted !== dbFormatted) {
-    throw new Error("Invalid Date of Birth");
+  if (formatDate(frontendDate) !== formatDate(dbDate)) {
+    throw new ApiError(400, "Invalid Date of Birth");
   }
 
   const otp = generateOTP();
-await otpRepo.create(agent.AgtLoginId, otp, 'FORGOT');
+  await otpRepo.create(agent.AgtLoginId, otp, "FORGOT");
 
   await mailer.sendOTP(email, otp);
-  
-  const expiry = await otpRepo.getLatestExpiry(agent.AgtLoginId, 'FORGOT');
 
-  
-  return { 
-    message: "OTP sent to registered email", 
-    agtLoginId: agent.AgtLoginId, 
-    expiresAt: expiry 
+  const expiry = await otpRepo.getLatestExpiry(agent.AgtLoginId, "FORGOT");
+
+  return {
+    message: "OTP sent to registered email",
+    agtLoginId: agent.AgtLoginId,
+    expiresAt: expiry,
   };
 };
+
 exports.verifyForgotOtp = async ({ agtLoginId, otp }) => {
-const valid = await otpRepo.verify(agtLoginId, otp, 'FORGOT');
+  const valid = await otpRepo.verify(agtLoginId, otp, "FORGOT");
+
   if (!valid) {
-    throw new Error("Invalid or expired OTP");
+    throw new ApiError(400, "Invalid or expired OTP");
   }
 
   const resetToken = jwt.sign(
@@ -128,11 +125,14 @@ const valid = await otpRepo.verify(agtLoginId, otp, 'FORGOT');
 
 exports.resetPassword = async (resetToken, newPassword) => {
   let decoded;
-  
+
   try {
-    decoded = jwt.verify(resetToken, process.env.RESET_PASSWORD_SECRET);
-  } catch (err) {
-    throw new Error("Invalid or expired reset token");
+    decoded = jwt.verify(
+      resetToken,
+      process.env.RESET_PASSWORD_SECRET
+    );
+  } catch {
+    throw new ApiError(401, "Invalid or expired reset token");
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);

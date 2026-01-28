@@ -1,4 +1,5 @@
 const dashboardRepo = require("../repositories/dashboard.repo");
+const ApiError = require("../utils/ApiError"); // ✅ added
 
 /* =========================
    DATE RANGE
@@ -41,6 +42,12 @@ exports.getDateRange = (filter) => {
 ========================= */
 
 exports.getDashboardData = async (filter = "today") => {
+  const allowedFilters = ["today", "week", "month", "all"];
+
+  if (!allowedFilters.includes(filter)) {
+    throw new ApiError(400, "Invalid dashboard filter");
+  }
+
   const range = exports.getDateRange(filter);
 
   let approved, rejected, discrepancy;
@@ -72,6 +79,6 @@ exports.getDashboardData = async (filter = "today") => {
     total: approved + rejected + discrepancy,
     approved,
     rejected,
-    discrepancy
+    discrepancy,
   };
 };

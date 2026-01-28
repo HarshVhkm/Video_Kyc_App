@@ -1,32 +1,29 @@
 const authService = require("../services/dashboardData.service");
 const dashboardRepo = require("../repositories/dashboard.repo");
-exports.getDashboard = async (req, res) => {
-  try {
-    const filter = req.query.filter || "today";
-    const range = authService.getDateRange(filter);
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
 
-    let data;
+exports.getDashboard = asyncHandler(async (req, res) => {
+  const filter = req.query.filter || "today";
+  const range = authService.getDateRange(filter);
 
-    // ✅ ALL DATA
-    if (!range) {
-      data = await dashboardRepo.getAllCounts();
-    } 
-    // ✅ DATE FILTERED
-    else {
-      data = await dashboardRepo.getCountsByDate(range.start, range.end);
-    }
+  let data;
 
-    
-    res.json({
-      success: true,
-      data
-    });
-
-  } catch (err) {
-    console.error("Dashboard Error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Dashboard error"
-    });
+  // ✅ ALL DATA
+  if (!range) {
+    data = await dashboardRepo.getAllCounts();
   }
-};
+  // ✅ DATE FILTERED
+  else {
+    data = await dashboardRepo.getCountsByDate(range.start, range.end);
+  }
+
+  if (!data) {
+    throw new ApiError(404, "Dashboard data not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    data,
+  });
+});

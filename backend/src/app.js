@@ -3,6 +3,7 @@ process.env.TZ = "UTC";
 const express = require("express");
 const cors = require("cors");
 const routes = require("./routes");
+const errorMiddleware = require("./middleware/error.middleware");
 
 const app = express();
 
@@ -65,13 +66,6 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
-  console.error("Server Error:", err.message);
-  res.status(500).json({
-    success: false,
-    error: "Internal Server Error",
-    message: err.message,
-  });
-});
+app.use(errorMiddleware);
 
 module.exports = app;

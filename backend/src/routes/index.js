@@ -10,10 +10,11 @@ router.use("/kyc", require("./kyc.routes"));
 
 // Health check route
 router.get("/health", (req, res) => {
-  res.json({ 
-    status: "OK", 
+  res.status(200).json({
+    success: true,
+    status: "OK",
+    service: "Video KYC Backend",
     timestamp: new Date().toISOString(),
-    service: "Video KYC Backend"
   });
 
   
