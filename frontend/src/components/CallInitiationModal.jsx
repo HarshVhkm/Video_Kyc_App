@@ -5,6 +5,10 @@ import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
 import dummyImage from '../assets/dummy.png'
 import { useNavigate, Link } from 'react-router-dom';
+import { FaMicrophone } from "react-icons/fa";
+import { MdVideocam, MdLocationOn } from "react-icons/md";
+import Switch from '@mui/material/Switch';
+
 
 const CallInitiationModal = ({ 
   open, 
@@ -18,6 +22,21 @@ const CallInitiationModal = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [progressValue, setProgressValue] = useState(0);
+
+  const permissionRow = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+};
+
+const leftSection = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  color: "#212529",
+  fontSize: "14px",
+};
+
 
   useEffect(() => {
     if (open) {
@@ -142,6 +161,39 @@ const CallInitiationModal = ({
           }}>
             Please check if your camera and mic is not working and proceed.
           </p>
+
+          {/* Permission Status */}
+<div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "20px" }}>
+
+  {/* Microphone */}
+  <div style={permissionRow}>
+    <div style={leftSection}>
+      <FaMicrophone size={18} />
+      <span>Enabled Microphone</span>
+    </div>
+    <Switch checked color="primary" />
+  </div>
+
+  {/* Camera */}
+  <div style={permissionRow}>
+    <div style={leftSection}>
+      <MdVideocam size={20} />
+      <span>Enabled Camera</span>
+    </div>
+    <Switch checked color="primary" />
+  </div>
+
+  {/* Location */}
+  <div style={permissionRow}>
+    <div style={leftSection}>
+      <MdLocationOn size={20} />
+      <span>Enabled Location</span>
+    </div>
+    <Switch checked color="primary" />
+  </div>
+
+</div>
+
           
           <p style={{ 
             color: '#1C43A6', 
