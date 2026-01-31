@@ -14,6 +14,8 @@ import {
 import { VisibilityOff, Visibility, Lock } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 
+import Swal from "sweetalert2";
+
 import loginImage from "../assets/login-bg.png";
 import wavingHand from "../assets/waving-hand.png";
 
@@ -58,22 +60,54 @@ const ResetPasswordPage = () => {
     const resetToken = localStorage.getItem("resetToken");
     if (!resetToken) {
       setError("Session expired. Please try again.");
+
+      Swal.fire({
+        icon: "warning",
+        title: "Session Expired",
+        text: "Please try again.",
+        confirmButtonColor: "#3085d6",
+      });
+
       setTimeout(() => navigate("/forgot-password"), 1500);
       return;
     }
 
     if (!formData.newPassword || !formData.confirmPassword) {
       setError("Please fill in all fields");
+
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please fill in all fields",
+        confirmButtonColor: "#d33",
+      });
+
       return;
     }
 
     if (formData.newPassword.length < 6) {
       setError("Password must be at least 6 characters long");
+
+      Swal.fire({
+        icon: "error",
+        title: "Weak Password",
+        text: "Password must be at least 6 characters long",
+        confirmButtonColor: "#d33",
+      });
+
       return;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
       setError("Passwords do not match");
+
+      Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "Passwords do not match",
+        confirmButtonColor: "#d33",
+      });
+
       return;
     }
 
@@ -101,13 +135,28 @@ const ResetPasswordPage = () => {
 
       setSuccess("Password reset successfully!");
 
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Password reset successfully!",
+        confirmButtonColor: "#3085d6",
+      });
+
       localStorage.removeItem("resetToken");
       localStorage.removeItem("fp_agtLoginId");
       localStorage.removeItem("fp_expiry");
 
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      const msg = err.message || "Something went wrong";
+      setError(msg);
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: msg,
+        confirmButtonColor: "#d33",
+      });
     } finally {
       setLoading(false);
     }
@@ -178,7 +227,6 @@ const ResetPasswordPage = () => {
           {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit}>
-            {/* New Password */}
             <TextField
               fullWidth
               label="New Password"
@@ -205,7 +253,6 @@ const ResetPasswordPage = () => {
               helperText="Password must be at least 6 characters long"
             />
 
-            {/* Confirm Password */}
             <TextField
               fullWidth
               label="Confirm New Password"
@@ -226,11 +273,7 @@ const ResetPasswordPage = () => {
                         togglePasswordVisibility("confirmPassword")
                       }
                     >
-                      {showPassword.confirmPassword ? (
-                        <Visibility />
-                      ) : (
-                        <VisibilityOff />
-                      )}
+                      {showPassword.confirmPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -243,7 +286,7 @@ const ResetPasswordPage = () => {
               variant="contained"
               disabled={loading}
               sx={{ py: 1.5, mb: 2 }}
-              style={{backgroundColor: "#1C43A6", color: "white"}}
+              style={{ backgroundColor: "#1C43A6", color: "white" }}
             >
               {loading ? (
                 <CircularProgress size={24} sx={{ color: "white" }} />
@@ -256,7 +299,7 @@ const ResetPasswordPage = () => {
               component={Link}
               to="/login"
               sx={{ display: "block", textAlign: "center", textDecoration: "none" }}
-              style={{color: "#1C43A6"}}
+              style={{ color: "#1C43A6" }}
             >
               ← Back to Login
             </Typography>

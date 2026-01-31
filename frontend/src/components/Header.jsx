@@ -20,6 +20,7 @@ import logo from "../assets/Logo.png";
 import WavingHand from "../assets/waving-hand.png";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { swalConfirm, swalSuccess } from "../utils/swal"; // ✅ ADDED
 
 const Header = () => {
   const theme = useTheme();
@@ -69,11 +70,26 @@ const Header = () => {
 
   const handleClose = () => setAnchorEl(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("profile");
-    navigate("/login");
-  };
+  // 🔥 LOGOUT WITH TOAST
+const handleLogout = () => {
+  handleClose(); // ✅ CLOSE MENU FIRST
+
+  swalConfirm({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    onConfirm: async () => {
+      await swalSuccess(
+        "Logged Out",
+        "You have been logged out successfully"
+      );
+
+      localStorage.clear();
+      navigate("/login");
+    },
+  });
+};
+
+
 
   return (
     <Box

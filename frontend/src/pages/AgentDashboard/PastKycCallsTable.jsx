@@ -57,7 +57,7 @@ const PastKycCallsTable = ({ data = [], loading = false }) => {
           {/* ---------- BODY ---------- */}
           <TableBody>
             {paginatedData.map((row, index) => (
-              <TableRow key={row.PastKycId || row.vcipId || index}>
+             <TableRow key={`${row.PastKycId || row.vcipId}-${index}`}>
                 <TableCell>{row.customerName || "-"}</TableCell>
                 <TableCell>{row.clientName || "-"}</TableCell>
                 <TableCell>{row.vcipId || "-"}</TableCell>

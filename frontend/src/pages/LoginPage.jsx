@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { VisibilityOff, Visibility, Email, Lock } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
-
+import { swalSuccess, swalError, swalWarning } from "../utils/swal";
 import loginImage from "../assets/login-bg.png";
 import wavingHand from "../assets/waving-hand.png";
 
@@ -64,12 +64,14 @@ const LoginPage = () => {
 
     if (!formData.email || !formData.password || !formData.role) {
       setError("Please fill all fields");
+      swalWarning("Validation Error", "Please fill all fields");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Please enter a valid email address");
+      swalWarning("Invalid Email", "Please enter a valid email address");
       return;
     }
 
@@ -96,7 +98,6 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(
           data.message || "Login failed. Please check your credentials."
@@ -114,16 +115,22 @@ const LoginPage = () => {
       }
 
       localStorage.removeItem("token");
+
+      await swalSuccess("OTP Sent", "Check your email for OTP");
       navigate("/otp");
+
     } catch (err) {
+      let errMsg =
+        err.message || "Network error. Please check your connection.";
       if (
-        err.message.includes("Failed to fetch") ||
-        err.message.includes("NetworkError")
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError")
       ) {
-        setError("Cannot connect to server. Please try again later.");
-      } else {
-        setError(err.message || "Network error. Please try again.");
+        errMsg = "Cannot connect to server. Please try again later.";
       }
+
+      setError(errMsg);
+      swalError("Login Failed", errMsg);
     } finally {
       setLoading(false);
     }
@@ -157,23 +164,15 @@ const LoginPage = () => {
 
       {/* RIGHT FORM */}
       <Box
-  sx={{
-    width: { xs: "100%", lg: "40%" },
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden", // ✅ stop scrollbar
-  }}
->
-
-        <Paper
-          elevation={0}
-          sx={{
-            width: "100%",
-            maxWidth: 460,
-            px: { xs: 3, sm: 5 },
-          }}
-        >
+        sx={{
+          width: { xs: "100%", lg: "40%" },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        <Paper elevation={0} sx={{ width: "100%", maxWidth: 460, px: 4 }}>
           {/* HEADER */}
           <Box sx={{ mb: 4 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -182,7 +181,9 @@ const LoginPage = () => {
               </Typography>
               <Box component="img" src={wavingHand} sx={{ width: 32 }} />
             </Box>
-            <Typography fontSize={16} fontWeight={500}>Welcome Back</Typography>
+            <Typography fontSize={16} fontWeight={500}>
+              Welcome Back
+            </Typography>
           </Box>
 
           {/* ERROR */}
@@ -192,7 +193,6 @@ const LoginPage = () => {
             </Alert>
           )}
 
-          {/* FORM */}
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -209,7 +209,7 @@ const LoginPage = () => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Email sx={{ color: "#6B7280" }} />
+                    <Email />
                   </InputAdornment>
                 ),
               }}
@@ -231,7 +231,7 @@ const LoginPage = () => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock sx={{ color: "#6B7280" }} />
+                    <Lock />
                   </InputAdornment>
                 ),
                 endAdornment: (
@@ -244,15 +244,7 @@ const LoginPage = () => {
               }}
             />
 
-            <FormControl
-              fullWidth
-              sx={{
-                mb: 4,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
-                },
-              }}
-            >
+            <FormControl fullWidth sx={{ mb: 4 }}>
               <InputLabel>Select Role</InputLabel>
               <Select
                 value={formData.role}
@@ -272,16 +264,10 @@ const LoginPage = () => {
               sx={{
                 height: 52,
                 borderRadius: "10px",
-                fontSize: "16px",
-                fontWeight: 600,
                 backgroundColor: "#1E40AF",
                 color: "#fff",
-                boxShadow: "0px 6px 14px rgba(30,64,175,0.25)",
                 mb: 2,
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#1E3A8A",
-                },
+                "&:hover": { backgroundColor: "#1E3A8A" },
               }}
             >
               {loading ? (
@@ -295,11 +281,7 @@ const LoginPage = () => {
               <Typography
                 component={Link}
                 to="/forgot-password"
-                sx={{
-                  color: "#1E40AF",
-                  fontWeight: 500,
-                  textDecoration: "underline",
-                }}
+                sx={{ color: "#1E40AF", textDecoration: "underline" }}
               >
                 Forgot Password?
               </Typography>

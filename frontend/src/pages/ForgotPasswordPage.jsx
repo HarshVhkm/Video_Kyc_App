@@ -14,7 +14,7 @@ import { Email, CalendarToday } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import loginImage from "../assets/login-bg.png";
 import wavingHand from "../assets/waving-hand.png";
-
+import { swalSuccess, swalError, swalWarning } from "../utils/swal";
 
 
 const ForgotPasswordPage = () => {
@@ -27,13 +27,11 @@ const ForgotPasswordPage = () => {
     dateOfBirth: "",
   });
 
-
   const handleChange = (field) => (event) => {
     setFormData((prev) => ({
       ...prev,
       [field]: event.target.value,
     }));
-    
     if (error) setError("");
   };
 
@@ -43,13 +41,14 @@ const ForgotPasswordPage = () => {
     
     if (!formData.email || !formData.dateOfBirth) {
       setError("Please fill in all fields");
+      swalWarning("Validation Error", "Please fill in all fields");
       return;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Please enter a valid email address");
+      swalWarning("Invalid Email", "Please enter a valid email address");
       return;
     }
 
@@ -60,7 +59,7 @@ const ForgotPasswordPage = () => {
         `${API_BASE_URL}/auth/forgot-password`,
         {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "Accept": "application/json"
           },
@@ -71,13 +70,11 @@ const ForgotPasswordPage = () => {
         }
       );
 
-      // Check if response is JSON
       const contentType = response.headers.get("content-type");
       
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
         console.error("Non-JSON response:", text.substring(0, 200));
-        
         if (response.status === 404) {
           throw new Error("Server endpoint not found. Please check the backend.");
         } else {
@@ -91,7 +88,6 @@ const ForgotPasswordPage = () => {
         throw new Error(data.message || "Failed to send OTP. Please check your details.");
       }
 
-      // Save for OTP verification
       localStorage.setItem("fp_agtLoginId", data.agtLoginId);
       
       if (data.expiresAt) {
@@ -103,18 +99,17 @@ const ForgotPasswordPage = () => {
 
       localStorage.removeItem("resetToken");
       
-      // Navigate to OTP page
+      swalSuccess("OTP Sent", "Verification code sent to your email");
       navigate("/forgot-password-otp");
       
     } catch (err) {
       console.error("Forgot password error:", err);
-      
-      // User-friendly error messages
+      let msg = err.message || "Something went wrong. Please try again.";
       if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-        setError("Cannot connect to server. Please try again later.");
-      } else {
-        setError(err.message || "Something went wrong. Please try again.");
+        msg = "Cannot connect to server. Please try again later.";
       }
+      setError(msg);
+      swalError("OTP Error", msg);
     } finally {
       setLoading(false);
     }
@@ -133,7 +128,6 @@ const ForgotPasswordPage = () => {
         overflow: 'hidden'
       }}
     >
-      {/* Left Side - Image */}
       <Box
         sx={{
           width: { xs: '0%', lg: '60%' },
@@ -149,8 +143,6 @@ const ForgotPasswordPage = () => {
           sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </Box>
-
-      {/* Right Side - Form */}
       <Box
         sx={{
           width: { xs: '100%', lg: '40%' },
@@ -175,17 +167,16 @@ const ForgotPasswordPage = () => {
             justifyContent: { xs: 'center', sm: 'flex-start' }
           }}
         >
-          {/* Header */}
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, justifyContent: 'left' }}>
               <Typography
                 variant="h3"
                 component="h1"
-                sx={{ 
-                  fontWeight: 700, 
-                  color: '#212529', 
-                  fontSize: { xs: '2rem', sm: '2.125rem', md: '2.25rem' }, 
-                  lineHeight: 1.2 
+                sx={{
+                  fontWeight: 700,
+                  color: '#212529',
+                  fontSize: { xs: '2rem', sm: '2.125rem', md: '2.25rem' },
+                  lineHeight: 1.2
                 }}
               >
                 Forgot Password?
@@ -194,17 +185,17 @@ const ForgotPasswordPage = () => {
                 component="img"
                 src={wavingHand}
                 alt="Waving hand"
-                sx={{ 
-                  width: { xs: '32px', sm: '34px', md: '36px' }, 
-                  height: { xs: '32px', sm: '34px', md: '36px' } 
+                sx={{
+                  width: { xs: '32px', sm: '34px', md: '36px' },
+                  height: { xs: '32px', sm: '34px', md: '36px' }
                 }}
               />
             </Box>
             <Typography
               variant="h6"
-              sx={{ 
-                color: '#212529', 
-                fontWeight: 500, 
+              sx={{
+                color: '#212529',
+                fontWeight: 500,
                 fontSize: { xs: '1rem', sm: '1.05rem', md: '1.1rem' },
                 textAlign: 'left'
               }}
@@ -212,13 +203,11 @@ const ForgotPasswordPage = () => {
               Enter your email and date of birth to reset your password
             </Typography>
           </Box>
-
-          {/* Error Alert */}
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3, 
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
                 borderRadius: '8px',
                 '& .MuiAlert-message': { fontSize: '0.875rem' }
               }}
@@ -227,8 +216,6 @@ const ForgotPasswordPage = () => {
               {error}
             </Alert>
           )}
-
-          {/* Form */}
           <Box component="form" onSubmit={handleGetOTP} sx={{ width: '100%' }}>
             <TextField
               fullWidth
@@ -246,9 +233,9 @@ const ForgotPasswordPage = () => {
                   '&:hover fieldset': { borderColor: '#1C43A6' },
                   '&.Mui-focused fieldset': { borderColor: '#1C43A6' },
                 },
-                '& .MuiInputLabel-root': { 
-                  color: '#6c757d', 
-                  '&.Mui-focused': { color: '#1C43A6' } 
+                '& .MuiInputLabel-root': {
+                  color: '#6c757d',
+                  '&.Mui-focused': { color: '#1C43A6' }
                 },
               }}
               InputProps={{
@@ -259,7 +246,6 @@ const ForgotPasswordPage = () => {
                 ),
               }}
             />
-
             <TextField
               fullWidth
               label="Date of Birth"
@@ -280,9 +266,9 @@ const ForgotPasswordPage = () => {
                   '&:hover fieldset': { borderColor: '#1C43A6' },
                   '&.Mui-focused fieldset': { borderColor: '#1C43A6' },
                 },
-                '& .MuiInputLabel-root': { 
-                  color: '#6c757d', 
-                  '&.Mui-focused': { color: '#1C43A6' } 
+                '& .MuiInputLabel-root': {
+                  color: '#6c757d',
+                  '&.Mui-focused': { color: '#1C43A6' }
                 },
               }}
               InputProps={{
@@ -293,7 +279,6 @@ const ForgotPasswordPage = () => {
                 ),
               }}
             />
-
             <Button
               type="submit"
               fullWidth
@@ -318,7 +303,6 @@ const ForgotPasswordPage = () => {
                 'Send Verification Code'
               )}
             </Button>
-
             <Box sx={{ textAlign: 'center', mt: 3 }}>
               <Typography
                 component={Link}
@@ -328,9 +312,9 @@ const ForgotPasswordPage = () => {
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   fontWeight: 500,
-                  '&:hover': { 
-                    textDecoration: 'underline', 
-                    color: '#15337D' 
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    color: '#15337D'
                   }
                 }}
               >

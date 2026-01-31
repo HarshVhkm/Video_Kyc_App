@@ -18,7 +18,7 @@ const StatsChart = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("All");
+  const [selectedOption, setSelectedOption] = useState("Today");
   const [chartValues, setChartValues] = useState({
     approved: 0,
     rejected: 0,
@@ -30,10 +30,10 @@ const StatsChart = () => {
   const loadDashboard = async () => {
     try {
       const map = {
-        All: "all",
         Today: "today",
         "This Week": "week",
-        "This Month": "month"
+        "This Month": "month",
+          All: "all",
       };
 
       const range = map[selectedOption] || "today";
@@ -134,7 +134,7 @@ const StatsChart = () => {
                 marginTop: '4px',
                 zIndex: 10
               }}>
-                {["All","Today", "This Week", "This Month"].map(option => (
+                {["Today", "This Week", "This Month", "All"].map(option => (
                   <button
                     key={option}
                     onClick={() => selectOption(option)}
