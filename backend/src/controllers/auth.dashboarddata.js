@@ -1,32 +1,21 @@
-const authService = require("../services/dashboardData.service");
-const dashboardRepo = require("../repositories/dashboard.repo");
+const dashboardService = require("../services/dashboardData.service");
+
 exports.getDashboard = async (req, res) => {
   try {
     const filter = req.query.filter || "today";
-    const range = authService.getDateRange(filter);
 
-    let data;
+    const data = await dashboardService.getDashboardData(filter);
 
-    // ✅ ALL DATA
-    if (!range) {
-      data = await dashboardRepo.getAllCounts();
-    } 
-    // ✅ DATE FILTERED
-    else {
-      data = await dashboardRepo.getCountsByDate(range.start, range.end);
-    }
-
-    
-    res.json({
+    res.status(200).json({
       success: true,
       data
     });
+  } catch (error) {
+    console.error("Dashboard Controller Error:", error);
 
-  } catch (err) {
-    console.error("Dashboard Error:", err);
     res.status(500).json({
       success: false,
-      message: "Dashboard error"
+      message: "Failed to load dashboard data"
     });
   }
 };

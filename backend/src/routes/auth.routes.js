@@ -21,8 +21,8 @@ router.post("/hash-password", authController.hashPassword);
 // work-dashboard pai chart
 router.get(
   "/work-dashboard",
-  auth,
-  authorize(1, 2),
+  // auth,
+  // authorize(1, 2),
   authDashboard.getDashboard
 );
 
