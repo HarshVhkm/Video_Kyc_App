@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { marked } = require("marked");
 
 const {
   CONFLUENCE_BASE_URL,
@@ -38,6 +37,40 @@ async function getPageByTitle(title) {
   );
   const data = await res.json();
   return data.results?.[0];
+}
+
+function mdToConfluence(md) {
+  const lines = md.split("\n");
+  let html = "";
+  let inList = false;
+
+  for (const line of lines) {
+    if (line.startsWith("### ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h3>${line.slice(4)}</h3>`;
+    } else if (line.startsWith("## ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h2>${line.slice(3)}</h2>`;
+    } else if (line.startsWith("# ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h1>${line.slice(2)}</h1>`;
+    } else if (line.startsWith("- ")) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      html += `<li>${line.slice(2)}</li>`;
+    } else if (line.trim() === "") {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += "<br/>";
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p>${line}</p>`;
+    }
+  }
+
+  if (inList) html += "</ul>";
+  return html;
 }
 
 async function createOrUpdatePage(title, body) {
@@ -86,8 +119,7 @@ async function run() {
 
     const title = file.replace(".md", "");
     const md = fs.readFileSync(path.join(docsDir, file), "utf8");
-
-    const html = marked.parse(md);
+    const content = mdToConfluence(md);
 
     const pageBody = `
 <h2>Latest Update</h2>
@@ -96,11 +128,11 @@ async function run() {
   <li><b>Updated:</b> ${new Date().toUTCString()}</li>
 </ul>
 <hr/>
-${html}
+${content}
 `;
 
     await createOrUpdatePage(title, pageBody);
-    console.log(`✔ Updated: ${title}`);
+    console.log(`✔ Updated ${title}`);
   }
 }
 
