@@ -17,6 +17,10 @@ jobs:
           echo "# Changelog" > docs/changelog.md
           git log --pretty=format:"- %h %s (%an)" >> docs/changelog.md
 
+      - name: Add Jekyll config
+        run: |
+          echo "theme: jekyll-theme-cayman" > docs/_config.yml
+
       - name: Deploy docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
