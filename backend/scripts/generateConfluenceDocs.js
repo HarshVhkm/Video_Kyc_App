@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config();
+
 
 const {
   CONFLUENCE_BASE_URL,
@@ -10,7 +12,7 @@ const {
   GITHUB_SHA
 } = process.env;
 
-const docsDir = path.resolve("docs");
+const docsDir = path.join(process.cwd(), "docs");
 
 const authHeader =
   "Basic " +
@@ -22,7 +24,7 @@ async function confluenceFetch(url, options = {}) {
   return fetch(url, {
     ...options,
     headers: {
-      "Authorization": authHeader,
+      Authorization: authHeader,
       "Content-Type": "application/json",
       ...(options.headers || {})
     }
@@ -40,19 +42,19 @@ async function getPageByTitle(title) {
 }
 
 async function createOrUpdatePage(title, body) {
-  const existingPage = await getPageByTitle(title);
+  const page = await getPageByTitle(title);
 
-  if (existingPage) {
+  if (page) {
     await confluenceFetch(
-      `${CONFLUENCE_BASE_URL}/rest/api/content/${existingPage.id}`,
+      `${CONFLUENCE_BASE_URL}/rest/api/content/${page.id}`,
       {
         method: "PUT",
         body: JSON.stringify({
-          id: existingPage.id,
+          id: page.id,
           type: "page",
           title,
           version: {
-            number: existingPage.version.number + 1
+            number: page.version.number + 1
           },
           body: {
             storage: {
@@ -86,6 +88,10 @@ async function createOrUpdatePage(title, body) {
 }
 
 async function run() {
+  if (!fs.existsSync(docsDir)) {
+    throw new Error("❌ docs/ folder not found in backend/");
+  }
+
   const files = fs.readdirSync(docsDir);
 
   for (const file of files) {
@@ -100,7 +106,7 @@ async function run() {
     const pageBody = `
 <h2>Latest Update</h2>
 <ul>
-  <li><b>Commit:</b> ${GITHUB_SHA}</li>
+  <li><b>Commit:</b> ${GITHUB_SHA || "local-run"}</li>
   <li><b>Updated:</b> ${new Date().toUTCString()}</li>
 </ul>
 <hr/>
@@ -113,6 +119,8 @@ async function run() {
 }
 
 run().catch(err => {
-  console.error("❌ Confluence Doc Error:", err);
+  console.error(err.message);
   process.exit(1);
 });
+
+

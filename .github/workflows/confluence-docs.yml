@@ -18,7 +18,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Run Confluence Documentation Generator
+      - name: Run Confluence Docs Script
+        working-directory: backend   # 🔥 IMPORTANT
         env:
           CONFLUENCE_BASE_URL: ${{ secrets.CONFLUENCE_BASE_URL }}
           CONFLUENCE_EMAIL: ${{ secrets.CONFLUENCE_EMAIL }}
