@@ -1,45 +1,44 @@
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
+const { execSync } = require("child_process"); // ✅ FIX
 
-const DIFF_PATH = path.join(__dirname, "../docs/context/diff.txt");
-const CONTEXT_PATH = path.join(__dirname, "../docs/context/current.txt");
 console.log("🟢 aiContextFromDiff.js running in CI");
 
-const commitId = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
-const commitMsg = execSync("git log -1 --pretty=%B", { encoding: "utf8" }).trim();
+const CONTEXT_DIR = path.join(__dirname, "../docs/context");
+const CURRENT = path.join(CONTEXT_DIR, "current.txt");
+const DIFF = path.join(CONTEXT_DIR, "diff.txt");
 
+fs.mkdirSync(CONTEXT_DIR, { recursive: true });
 
+// --- Get commit metadata safely ---
+let commitId = "unknown";
+let commitMsg = "unknown";
 
-const commitSha =
-  process.env.GITHUB_SHA ||
-  crypto.randomBytes(6).toString("hex");
-
-const diff = fs.existsSync(DIFF_PATH)
-  ? fs.readFileSync(DIFF_PATH, "utf8")
-  : "";
-
-let context = `
-Commit ID: ${commitSha}
-
-Commit Message:
-Automated documentation run.
-
-`;
-
-if (!diff || diff.includes("NO_RELEVANT_CODE_CHANGES")) {
-  context += `
-No relevant product code changes detected.
-
-This commit was still evaluated by the documentation pipeline.
-`;
-} else {
-  context += `
-Code changes detected:
-
-${diff}
-`;
+try {
+  commitId = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
+  commitMsg = execSync("git log -1 --pretty=%B", { encoding: "utf8" }).trim();
+} catch (e) {
+  console.warn("⚠️ Unable to read git metadata");
 }
 
-fs.writeFileSync(CONTEXT_PATH, context.trim() + "\n");
-console.log("✅ context/current.txt written with commit metadata");
+// --- Read diff ---
+let diffContent = "NO_RELEVANT_CODE_CHANGES";
+if (fs.existsSync(DIFF)) {
+  diffContent = fs.readFileSync(DIFF, "utf8").trim();
+}
+
+// --- Build context ---
+const context = `
+Commit ID: ${commitId}
+Commit Message: ${commitMsg}
+
+Diff:
+${diffContent || "NO_RELEVANT_CODE_CHANGES"}
+
+Documentation pipeline executed successfully.
+`;
+
+fs.writeFileSync(CURRENT, context.trim() + "\n");
+
+console.log("✅ context/current.txt written");
+console.log("🧾 Commit:", commitId);
