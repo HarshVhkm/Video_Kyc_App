@@ -6,6 +6,10 @@ const DIFF_PATH = path.join(__dirname, "../docs/context/diff.txt");
 const CONTEXT_PATH = path.join(__dirname, "../docs/context/current.txt");
 console.log("🟢 aiContextFromDiff.js running in CI");
 
+const commitId = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
+const commitMsg = execSync("git log -1 --pretty=%B", { encoding: "utf8" }).trim();
+
+
 
 const commitSha =
   process.env.GITHUB_SHA ||

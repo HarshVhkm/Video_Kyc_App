@@ -4,35 +4,31 @@ const path = require("path");
 
 const OUT = path.join(__dirname, "../docs/context/diff.txt");
 
-function run(cmd) {
-  return execSync(cmd, { encoding: "utf8" }).trim();
+function cmd(c) {
+  return execSync(c, { encoding: "utf8" }).trim();
 }
+
+let before;
+let after = cmd("git rev-parse HEAD");
 
 try {
-  const commits = run("git rev-list --max-count=2 HEAD").split("\n");
-
-  if (commits.length < 2) {
-    fs.writeFileSync(
-      OUT,
-      "NO_RELEVANT_CODE_CHANGES\nReason: only one commit available\n"
-    );
-    console.log("⚠️ Only one commit found");
-    process.exit(0);
-  }
-
-  const [after, before] = commits;
-
-  console.log(`🟢 Diff range: ${before} → ${after}`);
-
-  const diff = run(`git diff ${before} ${after}`);
-
+  before = cmd("git rev-parse HEAD~1");
+} catch {
+  console.log("⚠️ No previous commit found. First run.");
   fs.writeFileSync(
     OUT,
-    diff.length ? diff : "NO_RELEVANT_CODE_CHANGES\n"
+    `INITIAL_COMMIT\n${cmd("git show --stat HEAD")}`
   );
-
-  console.log("✅ diff.txt written");
-} catch (e) {
-  console.error("❌ Diff failed:", e.message);
-  process.exit(1);
+  process.exit(0);
 }
+
+console.log(`🟢 Diff range: ${before} → ${after}`);
+
+const diff = cmd(`git diff ${before} ${after}`);
+
+fs.writeFileSync(
+  OUT,
+  diff.trim() || "NO_RELEVANT_CODE_CHANGES"
+);
+
+console.log("✅ diff.txt written");
