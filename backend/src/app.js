@@ -76,5 +76,8 @@ app.use((err, req, res, next) => {
 console.log("AI_DOCS_TEST: logging enabled");
 console.log("REAL_PRODUCT_CHANGE");
 console.log("CI_TEST_RUN_" + Date.now());
+// backend/src/app.js
+console.log("CI_DIFF_WORKS_" + Date.now());
+
 
 module.exports = app;

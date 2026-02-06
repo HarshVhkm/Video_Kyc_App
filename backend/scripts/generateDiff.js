@@ -4,49 +4,47 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const DIFF_PATH = path.join(ROOT, "docs/context/diff.txt");
-console.log("🟢 generateDiff.js running in CI");
 
-
-// ensure folder exists
 fs.mkdirSync(path.dirname(DIFF_PATH), { recursive: true });
 
-// helper: check if previous commit exists
-function hasPreviousCommit() {
-  try {
-    execSync("git rev-parse HEAD~1", { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
+function git(cmd) {
+  return execSync(cmd, { encoding: "utf8" }).trim();
 }
 
 let diff = "";
 
+// 1️⃣ Prefer GitHub Actions commit range
+const before = process.env.GITHUB_EVENT_BEFORE;
+const after = process.env.GITHUB_SHA;
+
 try {
-  if (hasPreviousCommit()) {
-    // ✅ ONLY PRODUCT CODE (IMPORTANT)
-    diff = execSync(
-      "git diff HEAD~1 HEAD -- backend/src frontend/src",
-      { encoding: "utf8" }
-    ).trim();
+  if (before && after && before !== after) {
+    console.log("🟢 Using CI diff range:", before, "→", after);
+    diff = git(
+      `git diff ${before} ${after} -- backend/src frontend/src`
+    );
   } else {
-    // first commit / shallow clone
-    diff = execSync(
-      "git show HEAD -- backend/src frontend/src",
-      { encoding: "utf8" }
-    ).trim();
+    // 2️⃣ Fallback to HEAD~1 (local or CI)
+    console.log("🟡 Falling back to HEAD~1 diff");
+
+    // check if HEAD~1 exists
+    try {
+      git("git rev-parse HEAD~1");
+      diff = git(
+        "git diff HEAD~1 HEAD -- backend/src frontend/src"
+      );
+    } catch {
+      console.log("🟡 No previous commit found");
+    }
   }
 } catch (err) {
-  console.error("❌ Diff generation failed");
-  process.exit(1);
+  console.error("❌ Diff generation failed:", err.message);
 }
 
-// fallback if nothing changed
+// 3️⃣ Final fallback
 if (!diff) {
   diff = "NO_RELEVANT_CODE_CHANGES";
 }
 
-// write diff
 fs.writeFileSync(DIFF_PATH, diff + "\n");
-
-console.log("✅ Diff generated");
+console.log("✅ diff.txt written");
